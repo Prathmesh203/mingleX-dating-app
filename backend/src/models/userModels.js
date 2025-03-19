@@ -44,7 +44,7 @@ const UserSchema = new mongoose.Schema(
     profile: {
       type: String,
       default:
-        "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
       validate(value) {
         if (!validator.isURL(value)) {
           throw new Error("Please Enter a Valid URL");

@@ -66,7 +66,12 @@ const SwipeCards = ({ feed, onSwipeLeft, onSwipeRight, onLoadMore }) => {
   if (feed.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+       <div className="flex w-52 flex-col gap-4">
+  <div className="skeleton h-32 w-full"></div>
+  <div className="skeleton h-4 w-28"></div>
+  <div className="skeleton h-4 w-full"></div>
+  <div className="skeleton h-4 w-full"></div>
+</div>
       </div>
     );
   }

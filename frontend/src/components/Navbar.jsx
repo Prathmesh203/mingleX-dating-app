@@ -94,7 +94,8 @@ function Navbar() {
             className="btn btn-ghost btn-circle avatar"
           >
             <div className="w-10 rounded-full">
-              <img alt="Tailwind CSS Navbar component" src={user.profile} />
+              <img alt="Tailwind CSS Navbar component" src={user?user.profile:<span className="loading loading-spinner text-primary"></span>
+} />
             </div>
           </div>
           <ul
