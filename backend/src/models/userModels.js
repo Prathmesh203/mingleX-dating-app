@@ -1,0 +1,86 @@
+const mongoose = require("mongoose");
+const validator = require("validator");
+const jsonwebtoken = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const UserSchema = new mongoose.Schema(
+  {
+    firstname: {
+      type: String,
+      required: true,
+      minLength: 3,
+      MaxLength: 20,
+      trim: true,
+    },
+    lastname: {
+      type: String,
+      minLength: 3,
+      MaxLength: 20,
+      trim: true,
+      require: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      immutable: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    age: {
+      type: Number,
+
+      min: 17,
+      max: 50,
+    },
+    bio: {
+      type: String,
+      default: "enter your Bio",
+      MaxLength: 300,
+    },
+    profile: {
+      type: String,
+      default:
+        "https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAxL3JtNjA5LXNvbGlkaWNvbi13LTAwMi1wLnBuZw.png",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Please Enter a Valid URL");
+        }
+      },
+    },
+    gender: {
+      type: String,
+      trim: true,
+      validate(value) {
+        if (!["male", "female", "other"].includes(value)) {
+          throw new Error("Gender data not valid ");
+        }
+      },
+    },
+    dob: {
+      type: Date,
+    },
+    interest: {
+      type: [String],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+UserSchema.methods.getJwt = async function () {
+  const user = this;
+  const token = await jsonwebtoken.sign({ _id: user._id }, "Prathmesh@2003");
+  return token;
+};
+UserSchema.methods.validatePassword = async function (passwordByUser) {
+  const user = this;
+  const passwordHash = user.password;
+  const validPassword = await bcrypt.compare(passwordByUser, passwordHash);
+  return validPassword;
+};
+const User = mongoose.model("User", UserSchema);
+module.exports = User;
