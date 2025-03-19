@@ -54,7 +54,6 @@ authRouter.post("/signup", async (req, res) => {
            res.cookie("token", token,{
             expires: new Date(Date.now() + 8 * 3600000),
             httpOnly: true, 
-            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
            });
            const userData = user.toObject();
@@ -93,7 +92,7 @@ authRouter.post("/signup", async (req, res) => {
       }
       
      
-      const decoded = jwt.verify(token, "Prathmesh@2003");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('password');
       
       if (!user) {
