@@ -1,5 +1,4 @@
-//password:- BA55KNPp9IZ3euOS
-//username:- prathmeshch2003
+
 const url = process.env.MONGODB_URL
 
 const mongoose = require('mongoose');
