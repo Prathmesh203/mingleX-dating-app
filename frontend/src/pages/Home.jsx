@@ -30,7 +30,6 @@ function Home() {
       setAuth({});  
     } 
      if (auth.token) {
-    
       navigate('/feed');
     }
   }, []);

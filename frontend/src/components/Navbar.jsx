@@ -7,6 +7,8 @@ import { IoNotificationsSharp } from "react-icons/io5";
 import Notification from "./Notification";
 import getData from "../services/profileServices";
 import UseUserContext from "../hooks/UseUserContext";
+import { BsChatHeartFill } from "react-icons/bs";
+
 function Navbar() {
   const navigate = useNavigate();
   const { setAuth, user, setUser, requests } = UseUserContext();
@@ -73,6 +75,7 @@ function Navbar() {
   >
     <IoNotificationsSharp className="text-2xl" />
   </button>
+ 
 </div>
 
 <dialog id="my_modal_2" className="modal">
@@ -86,7 +89,10 @@ function Navbar() {
     <button>close</button>
   </form>
 </dialog>
+<button onClick={()=>{navigate("/chat")}}  className="btn btn-xs sm:btn-sm md:btn-sm lg:btn-md">
+  <BsChatHeartFill className="text-2xl" />
 
+  </button>
         <div className="dropdown dropdown-end">
           <div
             tabIndex={0}

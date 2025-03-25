@@ -29,22 +29,30 @@ userRouter.get("/user/request", userAuth, async (req, res) => {
   try {
     const user = req.user;
     const loggedinUserId = user._id;
+  
     const requests = await ConnectionModel.find({
       $or: [
         { toUserId: loggedinUserId, status: "accepted" },
         { fromUserId: loggedinUserId, status: "accepted" },
       ],
-    }).populate("fromUserId", "firstname lastname profile gender age interest");
-    const data = requests.map((key) => key.fromUserId);
+    })
+      .populate("fromUserId", "firstname lastname profile gender age interest")
+      .populate("toUserId", "firstname lastname profile gender age interest");
+  
+    const data = requests.map((connection) => 
+      connection.fromUserId._id.toString() === loggedinUserId.toString()
+        ? connection.toUserId
+        : connection.fromUserId
+    );
+  
     res.json({
-      message: "connection fetched successful",
+      message: "Connections fetched successfully",
       data: data,
     });
   } catch (error) {
-    res.json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
+  
 });
 
 //feed api

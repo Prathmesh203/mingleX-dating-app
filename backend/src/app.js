@@ -8,11 +8,14 @@ const connectionRoutes = require('./routes/connectionRoutes')
 const userRouter  = require('./routes/userRoutes')
 const connected = dbConnect();
 const cors = require('cors')
-const User = require('./models/userModels')
+const http  = require('http');
+const server = http.createServer(app);
+const initializeSocket = require('./utils/chat')
+initializeSocket(server)
 connected
   .then(() => {
     console.log("connected to database");
-    app.listen(3000, () => {
+    server.listen(3000, () => {
       console.log("server is running");
     });
   })
@@ -34,15 +37,5 @@ app.use('/',connectionRoutes);
 app.use('/',userRouter);
 
 
-app.get("/user", async (req, res) => {
-  try {
-    const users = await User.find({});
-    if (users) {
-      res.send(users);
-    }
-  } catch (error) {
-    console.log(error);
-    res.send("cant find data ");
-  }
-});
+
 

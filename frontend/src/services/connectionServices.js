@@ -45,4 +45,16 @@ export const respondRequest = async (status, requestId) => {
         }
 };
 
+ export const getUserConnections = async()=>{
+  try {
+    const response = await axios.get(`${URL}/user/request`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    throw new Error("Unable to show Notifications");
+    
+  }
+}
 export default sendRequest;

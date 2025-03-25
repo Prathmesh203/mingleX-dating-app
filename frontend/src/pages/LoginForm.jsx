@@ -126,7 +126,7 @@ const LoginForm = () => {
               to={"/signup"}
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Sign up
+              Sign in
             </Link>
           </div>
         </form>

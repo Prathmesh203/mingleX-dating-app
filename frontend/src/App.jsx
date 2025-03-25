@@ -10,6 +10,7 @@ import "./App.css";
 import ProfilePage from "./pages/ProfilePage";
 import UseAuth from "./hooks/UseUserContext";
 import Settings from "./pages/Settings";
+import ChatBox from "./pages/Chat";
 const MainLayout = () => {
   return (
     <div>
@@ -37,7 +38,7 @@ function App() {
             <Route path="/feed" element={<Feed />} />
             <Route path="/ProfilePage" element={<ProfilePage />} />
             <Route path="/settings" element={<Settings />} />
-
+            <Route path="/chat" element={<ChatBox />} />
           </Route>
         </Route>
       </Routes>
