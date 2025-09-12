@@ -2,77 +2,11 @@
 
 import { useState } from 'react';
 import { Heart, MessageCircle, Star, Gift, Clock } from 'lucide-react';
-import { cva } from "class-variance-authority";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import {Avatar, AvatarImage, AvatarFallback} from '../components/Avatar';
+
+import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Card, CardContent } from '../components/Card';
 import { Badge } from '../components/Badge';
-import { cn } from '../components/utils';
-
-
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-  {
-    variants: {
-      variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground shadow",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow",
-        outline: "text-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
-
-
-const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "size-9",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
-
-
-const cardVariants = cva(
-  "rounded-xl border bg-card text-card-foreground shadow",
-  {
-    variants: {
-      variant: {
-        default: "",
-      },
-    },
-  },
-);
 
 
 const mockNotifications = [
@@ -207,9 +141,8 @@ export function NotificationsPage() {
         {notifications.map((notification) => (
           <Card
             key={notification.id}
-            className={`cursor-pointer transition-colors ${
-              !notification.isRead ? 'bg-blue-50 border-blue-200' : ''
-            } ${getNotificationColor(notification.type)}`}
+            className={`cursor-pointer transition-colors ${!notification.isRead ? 'bg-blue-50 border-blue-200' : ''
+              } ${getNotificationColor(notification.type)}`}
             onClick={() => markAsRead(notification.id)}
           >
             <CardContent className="p-4">

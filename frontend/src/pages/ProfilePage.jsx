@@ -2,17 +2,12 @@
 
 import { useState } from 'react';
 import { Camera, Edit2, Save, X } from 'lucide-react';
-import { cva } from "class-variance-authority";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 
 import {Avatar , AvatarImage, AvatarFallback} from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
 import { Input } from '../components/Input';
 import { Textarea } from '../components/Textarea';
-import { Badge } from '../components/Badge';
-import { cn } from '../components/utils';
 
 
 const initialProfile = {
