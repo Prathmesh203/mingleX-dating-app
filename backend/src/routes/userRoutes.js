@@ -3,7 +3,8 @@ const userRouter = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const { ConnectionModel } = require("../models/connectionModels");
 const User = require("../models/userModels");
-//api to get user connections
+
+// api to get user connections
 userRouter.get("/user/connections", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -12,19 +13,19 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
       status: "interested",
       toUserId: loggedInUser,
     }).populate("fromUserId", "firstname lastname profile gender age interest");
-    const data = connections
+    const data = connections;
     res.json({
       message: "connection fetched successful",
       data: data,
     });
   } catch (error) {
-    res.json({
+    res.status(400).json({
       message: error.message,
     });
   }
 });
 
-//api to get user's requests
+// api to get user's requests
 userRouter.get("/user/request", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -52,10 +53,9 @@ userRouter.get("/user/request", userAuth, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-  
 });
 
-//feed api
+// feed api
 userRouter.get("/user/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;

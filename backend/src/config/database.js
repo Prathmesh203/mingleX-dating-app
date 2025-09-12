@@ -1,21 +1,19 @@
-<<<<<<< HEAD
-//password:- BA55KNPp9IZ3euOS
-//username:- prathmeshch2003
-const url = "mongodb+srv://prathmeshch2003:BA55KNPp9IZ3euOS@cluster0.i4ysu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-=======
-
-const url = process.env.MONGODB_URL
->>>>>>> 3affddf602ea3b4b64a70aaca1c3decfdc0c7606
-
 const mongoose = require('mongoose');
- 
-async function dbConnection(){
-     try{
-          await mongoose.connect(url);
-     }
-     catch(err){
-          console.log(err);
-     }
-     }
+
+require('dotenv').config(); 
+
+async function dbConnection() {
+  try {
+    const url = process.env.MONGODB_URL; // Use environment variable
+    if (!url) {
+      throw new Error('MONGODB_URL is not defined in the environment variables');
+    }
+    await mongoose.connect(url);
+    console.log('MongoDB connected successfully');
+  } catch (err) {
+    console.error('Database connection error:', err.message);
+    process.exit(1); // Exit process on failure
+  }
+}
 
 module.exports = dbConnection;

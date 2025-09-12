@@ -4,7 +4,8 @@ const { userAuth } = require("../middlewares/auth");
 const validate = require("validator");
 const bcrypt = require("bcrypt");
 const { profileValidation } = require("../utils/validation");
-//api to view user's profile 
+
+// api to view user's profile 
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -13,10 +14,10 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
     }
     res.json(user);
   } catch (error) {
-    console.log(error);
-    res.json(error.message);
+    res.status(400).json({ message: error.message });
   }
 });
+
 // api to edit profile information 
 profileRouter.patch("/profile/edit", userAuth, (req, res) => {
   try {
@@ -34,13 +35,14 @@ profileRouter.patch("/profile/edit", userAuth, (req, res) => {
     loggedInUser.save();
     res.json({ message: "profile updated successfully", data: loggedInUser });
   } catch (error) {
-    res.status(400).json(error.message);
+    res.status(400).json({ message: error.message });
   }
 });
-//api to update user's password 
+
+// api to update user's password 
 profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
   try {
-    data = req.body;
+    const data = req.body;
     const { email, newPassword } = data;
 
     const user = req.user;
@@ -60,7 +62,7 @@ profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {
     }
     const passwordHash = await bcrypt.hash(newPassword, 10);
     user.password = passwordHash;
-     await user.save();
+    await user.save();
     res.json({ message: "password updated successfully", data: user });
   } catch (error) {
     res.status(400).json({ message: error.message });

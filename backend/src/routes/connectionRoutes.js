@@ -4,13 +4,13 @@ const { userAuth } = require("../middlewares/auth");
 const { ConnectionModel } = require("../models/connectionModels");
 const userRouter = require("./userRoutes");
 
-//api to send the connection request 
+// api to send the connection request 
 connectionRoutes.post(
   "/request/:status/:userId",
   userAuth,
   async (req, res) => {
     try {
-      const user = req.user
+      const user = req.user;
       const status = req.params.status;
       const toUserId = req.params.userId;
       const fromUserId = user._id;
@@ -31,7 +31,7 @@ connectionRoutes.post(
       if (existingRequest) {
         throw new Error("You cant send the request back ");
       }
-      const availableUser = ConnectionModel.findById(toUserId);
+      const availableUser = await ConnectionModel.findById(toUserId); // Fixed to await
       if (!availableUser) {
         throw new Error("cant send request to the user who doesnt exist");
       }
@@ -46,14 +46,15 @@ connectionRoutes.post(
         data: data,
       });
     } catch (error) {
-      res.json({
+      res.status(400).json({ // Changed to status 400 for errors
         message: error.message,
       });
     }
   }
 );
-//api to accept the connection request 
-connectionRoutes.post("/request/user/:status/:requestId", userAuth, async(req, res) => {
+
+// api to accept the connection request 
+connectionRoutes.post("/request/user/:status/:requestId", userAuth, async (req, res) => {
   try {
     const { status, requestId } = req.params;
     const loggedInUser = req.user;
@@ -72,17 +73,16 @@ connectionRoutes.post("/request/user/:status/:requestId", userAuth, async(req, r
       throw new Error("Request not found ");
     }
     validRequest.status = status;
-   const data =  await validRequest.save();
-res.json({
-  message:"request accepted successfully ",
-  data: data
-})
+    const data = await validRequest.save();
+    res.json({
+      message: "request accepted successfully ",
+      data: data
+    });
   } catch (error) {
     res.status(400).json({
-      message:error.message
-    })
+      message: error.message
+    });
   }
 });
-
 
 module.exports = connectionRoutes;

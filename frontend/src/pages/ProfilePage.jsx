@@ -1,170 +1,238 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import UseUserContext from "../hooks/UseUserContext";
-import EditInfo from "../components/EditInfo";
-function ProfilePage() {
-  const { user, userForProfile, setUserForProfile, setEditInfo } =
-    UseUserContext();
-  const navigate = useNavigate();
+"use client";
 
-  if (!user?.profile) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="flex w-52 flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <div className="skeleton h-16 w-16 shrink-0 rounded-full"></div>
-            <div className="flex flex-col gap-4">
-              <div className="skeleton h-4 w-20"></div>
-              <div className="skeleton h-4 w-28"></div>
-            </div>
-          </div>
-          <div className="skeleton h-32 w-full"></div>
-        </div>{" "}
-      </div>
-    );
-  }
-  const handleClose = () => {
-    setUserForProfile(null);
-    navigate("/feed");
+import { useState } from 'react';
+import { Camera, Edit2, Save, X } from 'lucide-react';
+import { cva } from "class-variance-authority";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+import {Avatar , AvatarImage, AvatarFallback} from '../components/Avatar';
+import { Button } from '../components/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/Card';
+import { Input } from '../components/Input';
+import { Textarea } from '../components/Textarea';
+import { Badge } from '../components/Badge';
+import { cn } from '../components/utils';
+
+
+const initialProfile = {
+  name: "John Doe",
+  age: "28",
+  location: "New York, NY",
+  occupation: "Software Developer",
+  bio: "Passionate about technology, love hiking, and always up for a good coffee. Looking for someone to share adventures with!",
+  interests: ["Technology", "Hiking", "Coffee", "Travel", "Photography"],
+  profileImage: "https://images.unsplash.com/photo-1543132220-e7fef0b974e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx5b3VuZyUyMG1hbiUyMHBvcnRyYWl0JTIwY2FzdWFsfGVufDF8fHx8MTc1NzU3MjY0OXww&ixlib=rb-4.1.0&q=80&w=1080"
+};
+
+export function ProfilePage() {
+  const [profile, setProfile] = useState(initialProfile);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState(initialProfile);
+
+  const handleEdit = () => {
+    setEditedProfile(profile);
+    setIsEditing(true);
   };
-  const handleName = () => {
-    setEditInfo("name");
-    document.getElementById("my_modal_5").showModal();
+
+  const handleSave = () => {
+    setProfile(editedProfile);
+    setIsEditing(false);
   };
-  const handlePassword = () => {
-    document.getElementById("my_modal_5").showModal();
-    setEditInfo("password");
+
+  const handleCancel = () => {
+    setEditedProfile(profile);
+    setIsEditing(false);
   };
-  const handleProfileInfo = () => {
-    document.getElementById("my_modal_5").showModal();
-    setEditInfo("profile");
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result;
+        setEditedProfile({ ...editedProfile, profileImage: result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
-  const handleInterest = () => {
-    document.getElementById("my_modal_5").showModal();
-    setEditInfo("interest");
+
+  const handleInterestAdd = (interest) => {
+    if (interest && !editedProfile.interests.includes(interest)) {
+      setEditedProfile({
+        ...editedProfile,
+        interests: [...editedProfile.interests, interest]
+      });
+    }
+  };
+
+  const handleInterestRemove = (interest) => {
+    setEditedProfile({
+      ...editedProfile,
+      interests: editedProfile.interests.filter(i => i !== interest)
+    });
   };
 
   return (
-    <div>
-      {!userForProfile || !userForProfile.profile ? (
-        <div className="flex flex-col w-full min-h-screen">
-          <div className="flex flex-col items-center px-4 py-8 max-w-2xl mx-auto w-full">
-            <div className=" rounded-lg shadow-md p-6 w-full">
-              <div className="flex flex-col items-center mb-6">
-                <div className="w-32 h-32 mb-4 rounded-full overflow-hidden">
-                  <img
-                    src={user.profile || "/default-profile.png"}
-                    alt="User Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+    <div className="max-w-2xl mx-auto p-4 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+        {!isEditing ? (
+          <Button onClick={handleEdit} variant="outline" className="gap-2">
+            <Edit2 className="h-4 w-4" />
+            Edit Profile
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button onClick={handleSave} className="gap-2 bg-green-500 hover:bg-green-600">
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+            <Button onClick={handleCancel} variant="outline" className="gap-2">
+              <X className="h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
 
-                <h1 className="text-2xl font-bold">
-                  {user.firstname} {user.lastname}
-                </h1>
-              </div>
-              <div className="space-y-4 mb-6">
-                <div className="border-b pb-3">
-                  <h2 className="text-lg font-semibold  mb-2">Bio</h2>
-                  <p>{user.bio || "No bio added yet"}</p>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Photo</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <Avatar className="w-32 h-32">
+              <AvatarImage src={isEditing ? editedProfile.profileImage : profile.profileImage} />
+              <AvatarFallback>{profile.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+            </Avatar>
+            {isEditing && (
+              <label className="absolute bottom-0 right-0 bg-pink-500 text-white p-2 rounded-full cursor-pointer hover:bg-pink-600">
+                <Camera className="h-4 w-4" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-                <div className="grid grid-cols-2 gap-4 border-b pb-3">
-                  <div>
-                    <h2 className="text-lg font-semibold  mb-1">Age</h2>
-                    <p>{user.age || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold  mb-1">Gender</h2>
-                    <p>{user.gender || "Not specified"}</p>
-                  </div>
-                </div>
-                <div className="border-b pb-3 ">
-                  <h2 className="text-lg font-semibold mb-2">Your Interests</h2>
-                  {user.interest && user.interest.length > 0 ? (
-                    <ul className="list bg-base-100 rounded-box shadow-md">
-                      {user.interest.map((keys) => {
-                        return <li key={user._id}>{keys}</li>;
-                      })}
-                    </ul>
-                  ) : (
-                    <p>No interests added yet</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-1">
-                <button
-                  className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg "
-                  onClick={handleName}
-                >
-                  Edit Name
-                </button>
-                <button
-                  className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg "
-                  onClick={handlePassword}
-                >
-                  Update Passsword
-                </button>
-                <button
-                  className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg "
-                  onClick={handleProfileInfo}
-                >
-                  Update Profile Info
-                </button>
-                <button
-                  className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg   "
-                  onClick={handleInterest}
-                >
-                  Add More Interest
-                </button>
-                <EditInfo />
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name</label>
+              {isEditing ? (
+                <Input
+                  value={editedProfile.name}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
+                />
+              ) : (
+                <p className="p-2 bg-gray-50 rounded">{profile.name}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Age</label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={editedProfile.age}
+                  onChange={(e) => setEditedProfile({ ...editedProfile, age: e.target.value })}
+                />
+              ) : (
+                <p className="p-2 bg-gray-50 rounded">{profile.age}</p>
+              )}
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="hero bg-base-200 min-h-screen">
-          <div className="hero-content flex-col lg:flex-row">
-            <img
-              src={userForProfile.profile}
-              className="max-w-sm rounded-lg shadow-2xl"
-            />
-            <div>
-              <h1 className="text-2xl text-center font-bold">
-                {userForProfile.firstname + " " + userForProfile.lastname}
-              </h1>
-              <div>
-                <h1 className=" text-center font-medium">
-                  {userForProfile.age && "Age is " + userForProfile.age}
-                </h1>
-                <h1 className=" text-center font-medium">
-                  {userForProfile.gender &&
-                    "Gender is " + userForProfile.gender}
-                </h1>
-                <h1 className=" text-center font-bold">
-                  {userForProfile.bio !== "enter your Bio" &&
-                    userForProfile.bio}
-                </h1>
-                <div className="w-[50vw] border h-[30vh] overflow-scroll ">
-                  <ul>
-                    {userForProfile.interest.length !== 0
-                      ? userForProfile.interest.map((keys) => {
-                          return <li key={keys}>{keys}</li>;
-                        })
-                      : "No Interests added"}
-                  </ul>
-                </div>
-              </div>
-              <button onClick={handleClose} className="btn btn-primary">
-                CLose Profile{" "}
-              </button>
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Location</label>
+            {isEditing ? (
+              <Input
+                value={editedProfile.location}
+                onChange={(e) => setEditedProfile({ ...editedProfile, location: e.target.value })}
+              />
+            ) : (
+              <p className="p-2 bg-gray-50 rounded">{profile.location}</p>
+            )}
           </div>
-        </div>
-      )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Occupation</label>
+            {isEditing ? (
+              <Input
+                value={editedProfile.occupation}
+                onChange={(e) => setEditedProfile({ ...editedProfile, occupation: e.target.value })}
+              />
+            ) : (
+              <p className="p-2 bg-gray-50 rounded">{profile.occupation}</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>About Me</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Bio</label>
+            {isEditing ? (
+              <Textarea
+                value={editedProfile.bio}
+                onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
+                rows={4}
+              />
+            ) : (
+              <p className="p-2 bg-gray-50 rounded">{profile.bio}</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Interests</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {(isEditing ? editedProfile.interests : profile.interests).map((interest, index) => (
+              <span
+                key={index}
+                className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full flex items-center gap-2"
+              >
+                {interest}
+                {isEditing && (
+                  <button
+                    onClick={() => handleInterestRemove(interest)}
+                    className="text-pink-600 hover:text-pink-800"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </span>
+            ))}
+            {isEditing && (
+              <Input
+                placeholder="Add interest..."
+                className="w-32"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleInterestAdd(e.currentTarget.value);
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-export default ProfilePage;

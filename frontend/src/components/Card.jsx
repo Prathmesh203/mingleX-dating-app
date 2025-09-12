@@ -1,43 +1,92 @@
-// Card.jsx
-import React from "react";
-import UseAuth from "../hooks/UseUserContext";
-import { useNavigate } from "react-router-dom";
-function Card({ data }) {
-  const navigate = useNavigate();
-  const {setUserForProfile} = UseAuth();
-  const {
-    image = data.profile,
-    title = data.firstname + " "+ data.lastname ,
-    description = data.age && data.age,
-    buttonText = "View Profile"
-  } = data || {};
-  const handleProfile = ()=>{
-    setUserForProfile(data);
-    navigate('/ProfilePage')
-  }
+import * as React from "react";
+
+import { cn } from "./utils";
+
+function Card({ className, ...props }) {
   return (
-    <div className="tooltip">
-      <div className="tooltip-content">
-    <div className="animate-bounce text-orange-400 -rotate-10 text-2xl font-black">swipe</div>
-  </div>
-    <div className="card bg-base-100 w-96 shadow-2xl shadow-base-300 z-10 hover:border">
-      <figure className="px-10 pt-10">
-        <img
-          src={image}
-          alt={title}
-          className="rounded-xl"
-        />
-      </figure>
-      <div className="card-body items-center text-center">
-        <h2 className="card-title">{title}</h2>
-        <p>{description}</p>
-        <div className="card-actions">
-          <button onClick={handleProfile} className="btn btn-primary">{buttonText}</button>
-        </div>
-      </div>
-    </div>
-    </div>
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border",
+        className
+      )}
+      {...props}
+    />
   );
 }
 
-export default Card;
+function CardHeader({ className, ...props }) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn(
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function CardTitle({ className, ...props }) {
+  return (
+    <h4
+      data-slot="card-title"
+      className={cn("leading-none", className)}
+      {...props}
+    />
+  );
+}
+
+function CardDescription({ className, ...props }) {
+  return (
+    <p
+      data-slot="card-description"
+      className={cn("text-muted-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+function CardAction({ className, ...props }) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn(
+        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+function CardContent({ className, ...props }) {
+  return (
+    <div
+      data-slot="card-content"
+      className={cn("px-6 [&:last-child]:pb-6", className)}
+      {...props}
+    />
+  );
+}
+
+function CardFooter({ className, ...props }) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("flex items-center px-6 pb-6 [.border-t]:pt-6", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+};
