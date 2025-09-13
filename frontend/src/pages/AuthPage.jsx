@@ -1,25 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Heart } from 'lucide-react';
+import { useAuth } from '../context/authContext';
+import { useNavigate } from 'react-router-dom';
 
-export function AuthPage({ onLogin }) {
+export function AuthPage() {
+  const { login, register } = useAuth();
+
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [signupName, setSignupName] = useState('');
+  const [signupFirstName, setSignupFirstName] = useState('');
+  const [signupLastName, setSignupLastName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+   const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate("/home");
+    }
+  }, [isAuthenticated, loading, navigate]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    onLogin();
+    try {
+      await login(loginEmail, loginPassword);
+    } catch (error) {
+      console.error('Login failed:', error.message);
+    }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    onLogin();
+    try {
+      await register(signupFirstName, signupLastName, signupEmail, signupPassword);
+    } catch (error) {
+      console.error('Signup failed:', error.message);
+    }
   };
 
   return (
@@ -39,6 +59,7 @@ export function AuthPage({ onLogin }) {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
 
+          {/* ---- Login ---- */}
           <TabsContent value="login">
             <Card>
               <CardHeader>
@@ -77,6 +98,7 @@ export function AuthPage({ onLogin }) {
             </Card>
           </TabsContent>
 
+          {/* ---- Signup ---- */}
           <TabsContent value="signup">
             <Card>
               <CardHeader>
@@ -85,16 +107,29 @@ export function AuthPage({ onLogin }) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="signup-name">Full Name</label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={signupName}
-                      onChange={(e) => setSignupName(e.target.value)}
-                      required
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="signup-firstname">First Name</label>
+                      <Input
+                        id="signup-firstname"
+                        type="text"
+                        placeholder="First Name"
+                        value={signupFirstName}
+                        onChange={(e) => setSignupFirstName(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="signup-lastname">Last Name</label>
+                      <Input
+                        id="signup-lastname"
+                        type="text"
+                        placeholder="Last Name"
+                        value={signupLastName}
+                        onChange={(e) => setSignupLastName(e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="signup-email">Email</label>

@@ -7,11 +7,7 @@ import { ChatPage } from "./pages/ChatPage";
 import { NotificationsPage } from "./pages/NotificationPage";
 import { Navigation } from "./pages/Navigation";
 import { useAuth } from "./context/authContext";
-// ProtectedRoute component
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/auth" replace />;
-}
+import ProtectedRoute from "./ProtectedRoutes";
 
 export default function App() {
   const { isAuthenticated, login, logout } = useAuth();
