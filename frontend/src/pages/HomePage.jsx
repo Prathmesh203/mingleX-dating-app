@@ -1,89 +1,65 @@
-"use client";
-
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-import { Heart, X, MapPin, Briefcase } from 'lucide-react';
-
-import { Button } from '../components/Button';
-import { Card, CardContent } from '../components/Card';
-import { Badge } from '../components/Badge';
-import { Toggle } from '../components/Toggle';
-
-
-
-const mockUsers = [
-  {
-    id: 1,
-    name: "Emma",
-    age: 24,
-    image: "https://images.unsplash.com/photo-1688897345095-03fbea551ef9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMHdvbWFuJTIwcG9ydHJhaXQlMjBkYXRpbmd8ZW58MXx8fHwxNzU3NTQ0OTMzfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    location: "New York",
-    occupation: "Designer",
-    bio: "Love coffee, art galleries, and long walks in Central Park"
-  },
-  {
-    id: 2,
-    name: "James",
-    age: 28,
-    image: "https://images.unsplash.com/photo-1543132220-e7fef0b974e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx5b3VuZyUyMG1hbiUyMHBvcnRyYWl0JTIwY2FzdWFsfGVufDF8fHx8MTc1NzU3MjY0OXww&ixlib=rb-4.1.0&q=80&w=1080",
-    location: "Los Angeles",
-    occupation: "Photographer",
-    bio: "Adventure seeker, sunset chaser, and coffee enthusiast"
-  },
-  {
-    id: 3,
-    name: "Sofia",
-    age: 26,
-    image: "https://images.unsplash.com/photo-1694299352873-0c29d862e87a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx3b21hbiUyMHNtaWxpbmclMjBwb3J0cmFpdHxlbnwxfHx8fDE3NTc2MTc3NTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    location: "San Francisco",
-    occupation: "Software Engineer",
-    bio: "Tech lover, yoga practitioner, and foodie explorer"
-  },
-  {
-    id: 4,
-    name: "Alex",
-    age: 29,
-    image: "https://images.unsplash.com/photo-1622429081783-afff14ae39c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxtYW4lMjBwb3J0cmFpdCUyMGxpZmVzdHlsZXxlbnwxfHx8fDE3NTc2NDI2MjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    location: "Chicago",
-    occupation: "Marketing Manager",
-    bio: "Music lover, gym enthusiast, and weekend traveler"
-  }
-];
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart, X, MapPin, Briefcase, Loader } from "lucide-react";
+import { Button } from "../components/Button";
+import { Card, CardContent } from "../components/Card";
+import { getUserFeed } from "../services/userServices";
+import { useAuth } from "../context/authContext";
+import { sendConnectionRequest } from "../services/connectionService";
 
 export function HomePage() {
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [likedUsers, setLikedUsers] = useState([]);
   const [dislikedUsers, setDislikedUsers] = useState([]);
+  const [page, setPage] = useState(1);
+  const { token } = useAuth();
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["userFeed", page],
+    queryFn: () => getUserFeed(token, page, 10),
+    placeholderData: (prev) => prev,
+  });
 
-  const currentUser = mockUsers[currentUserIndex];
+  const users = data?.data?.data?.data || [];
+  const currentUser = users[currentUserIndex];
 
-  const handleLike = () => {
+  const handleLike = async () => {
     if (currentUser) {
-      setLikedUsers([...likedUsers, currentUser.id]);
+      await sendConnectionRequest(token, "interested", currentUser._id);
+      setLikedUsers([...likedUsers, currentUser._id]);
       nextUser();
     }
   };
 
-  const handleDislike = () => {
+  const handleDislike = async () => {
     if (currentUser) {
-      setDislikedUsers([...dislikedUsers, currentUser.id]);
+      await sendConnectionRequest(token, "ignored", currentUser._id);
+      setDislikedUsers([...dislikedUsers, currentUser._id]);
       nextUser();
     }
   };
 
   const nextUser = () => {
-    if (currentUserIndex < mockUsers.length - 1) {
+    if (currentUserIndex < users.length - 1) {
       setCurrentUserIndex(currentUserIndex + 1);
     } else {
-      setCurrentUserIndex(0); // Loop back to first user for demo
+      setPage((prev) => prev + 1);
+      setCurrentUserIndex(0);
     }
   };
 
-  if (!currentUser) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">No more users to show!</p>
+        <Loader className="h-8 w-8 text-pink-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError || !users.length) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">No users available.</p>
       </div>
     );
   }
@@ -92,7 +68,7 @@ export function HomePage() {
     <div className="max-w-md mx-auto h-full flex flex-col justify-center p-4">
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentUser.id}
+          key={currentUser._id}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
@@ -101,21 +77,22 @@ export function HomePage() {
           <Card className="overflow-hidden">
             <div className="relative">
               <img
-                src={currentUser.image}
-                alt={currentUser.name}
+                src={currentUser.profile || "/default-avatar.png"}
+                alt={currentUser.firstname}
                 className="w-full h-96 object-cover"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
                 <h2 className="text-white text-2xl font-bold">
-                  {currentUser.name}, {currentUser.age}
+                  {currentUser.firstname} {currentUser.lastname},{" "}
+                  {currentUser.age}
                 </h2>
                 <div className="flex items-center gap-2 text-white/90 mt-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{currentUser.location}</span>
+                  <span>{currentUser.location || "Unknown"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/90 mt-1">
                   <Briefcase className="h-4 w-4" />
-                  <span>{currentUser.occupation}</span>
+                  <span>{currentUser.occupation || "Not provided"}</span>
                 </div>
               </div>
             </div>
@@ -145,7 +122,7 @@ export function HomePage() {
       </div>
 
       <div className="text-center mt-4 text-sm text-gray-500">
-        {currentUserIndex + 1} of {mockUsers.length}
+        {currentUserIndex + 1} of {users.length}
       </div>
     </div>
   );

@@ -65,33 +65,5 @@ authRouter.post('/logout', (req, res) => {
      }
    });
 
-// api to verify authentication
-// authRouter.get("/verify-auth", async (req, res) => {
-//     try {
-//       const authHeader = req.headers.authorization;
-//       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-//         return res.status(401).json({ authenticated: false });
-//       }
-      
-//       const token = authHeader.split(' ')[1];
-//       if (!token) {
-//         return res.status(401).json({ authenticated: false });
-//       }
-      
-//       const decoded = jwt.verify(token, "Prathmesh@2003");
-//       const user = await User.findById(decoded.id).select('-password');
-      
-//       if (!user) {
-//         return res.status(401).json({ authenticated: false });
-//       }
-      
-//       return res.json({
-//         authenticated: true,
-//         data: user
-//       });
-//     } catch (error) {
-//       return res.status(401).json({ authenticated: false, error: error.message });
-//     }
-// });
 
 module.exports = authRouter;

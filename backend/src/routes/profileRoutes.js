@@ -4,40 +4,68 @@ const { userAuth } = require("../middlewares/auth");
 const validate = require("validator");
 const bcrypt = require("bcrypt");
 const { profileValidation } = require("../utils/validation");
+const { default: upload } = require("../middlewares/multer");
 
 // api to view user's profile 
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
   try {
-    const user = req.user;
-    if (!user) {
-      throw new Error("user not found ");
+    if (!req.user) {
+      throw new Error("user not found");
     }
-    res.json(user);
+
+    const { password, __v, createdAt, updatedAt, ...Data } = req.user.toObject();
+
+    res.json(Data);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
 
-// api to edit profile information 
-profileRouter.patch("/profile/edit", userAuth, (req, res) => {
-  try {
-    const isValid = profileValidation(req);
-    if (!isValid) {
-      throw new Error("data is not valid");
+
+
+profileRouter.patch(
+  "/profile/edit",
+  userAuth,
+  upload.single("profile"), // <--- multer middleware
+  async (req, res) => {
+    try {
+      const isValid = profileValidation(req);
+      if (!isValid) {
+        throw new Error("data is not valid");
+      }
+
+      const loggedInUser = req.user;
+      if (!loggedInUser) {
+        throw new Error("user not found");
+      }
+
+      // ✅ Update only provided fields
+      Object.keys(req.body).forEach((key) => {
+        if (req.body[key] !== undefined && req.body[key] !== null) {
+          loggedInUser[key] = req.body[key];
+        }
+      });
+
+      // ✅ Handle profile picture (from memory buffer)
+      if (req.file) {
+        const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+          "base64"
+        )}`;
+        loggedInUser.profile = base64Image;
+      }
+
+      await loggedInUser.save();
+
+      res.json({
+        message: "Profile updated successfully",
+        data: loggedInUser,
+      });
+    } catch (error) {
+      res.status(400).json({ message: error.message });
     }
-    const loggedInUser = req.user;
-    if (!loggedInUser) {
-      throw new Error("user not found");
-    }
-    Object.keys(req.body).forEach(
-      (keys) => (loggedInUser[keys] = req.body[keys])
-    );
-    loggedInUser.save();
-    res.json({ message: "profile updated successfully", data: loggedInUser });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
   }
-});
+);
+
 
 // api to update user's password 
 profileRouter.patch("/profile/updatePassword", userAuth, async (req, res) => {

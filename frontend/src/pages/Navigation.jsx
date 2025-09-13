@@ -101,7 +101,7 @@ export function Navigation({
         <div className="max-w-6xl mx-auto w-full flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <Heart className="h-6 w-6 text-pink-500 fill-pink-500" />
-            <span className="text-xl font-bold text-gray-900">LoveConnect</span>
+            <span className="text-xl font-bold text-gray-900">mingleX</span>
           </div>
 
           <div className="flex items-center gap-2">

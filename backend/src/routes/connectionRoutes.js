@@ -3,6 +3,7 @@ const connectionRoutes = express.Router();
 const { userAuth } = require("../middlewares/auth");
 const { ConnectionModel } = require("../models/connectionModels");
 const userRouter = require("./userRoutes");
+const User = require("../models/userModels");
 
 // api to send the connection request 
 connectionRoutes.post(
@@ -31,7 +32,7 @@ connectionRoutes.post(
       if (existingRequest) {
         throw new Error("You cant send the request back ");
       }
-      const availableUser = await ConnectionModel.findById(toUserId); // Fixed to await
+      const availableUser = await User.findById(toUserId); 
       if (!availableUser) {
         throw new Error("cant send request to the user who doesnt exist");
       }

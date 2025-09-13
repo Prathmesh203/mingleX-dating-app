@@ -12,7 +12,7 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     const connections = await ConnectionModel.find({
       status: "interested",
       toUserId: loggedInUser,
-    }).populate("fromUserId", "firstname lastname profile gender age interest");
+    }).select(" -updatedAt -__v").populate("fromUserId", "firstname lastname profile gender age interest");
     const data = connections;
     res.json({
       message: "connection fetched successful",
@@ -39,13 +39,13 @@ userRouter.get("/user/request", userAuth, async (req, res) => {
     })
       .populate("fromUserId", "firstname lastname profile gender age interest")
       .populate("toUserId", "firstname lastname profile gender age interest");
-  
-    const data = requests.map((connection) => 
-      connection.fromUserId._id.toString() === loggedinUserId.toString()
-        ? connection.toUserId
-        : connection.fromUserId
+      
+      const data = requests?.map((connection) => 
+        connection.fromUserId._id.toString() === loggedinUserId.toString()
+      ? connection.toUserId
+      : connection.fromUserId
     );
-  
+ 
     res.json({
       message: "Connections fetched successfully",
       data: data,

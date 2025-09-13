@@ -1,22 +1,9 @@
 import axios from "axios";
+import { handleRequest } from "../../utils/handler";
 
-const API_URL = "http://localhost:3000"
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const handleRequest = async (requestFn) => {
-  try {
-    const response = await requestFn();
-    return { success: true, data: response };
-  } catch (error) {
-    console.error("AuthService Error:", error);
 
-    return {
-      success: false,
-      error:
-        error.message || 
-        "Something went wrong",
-    };
-  }
-};
 
 
 export const loginUser = async (email, password) =>

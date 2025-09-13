@@ -11,7 +11,7 @@ const validateData = (req)=>{
      }
 }
 const profileValidation = (req)=>{
-    const data =  ["firstname","lastname","age","bio","profile","gender","dob","interest"];
+    const data =  ["firstname","lastname","age","bio","profile","gender","dob","interest", "_id", "email", "location", "occupation"];
     const validateData = Object.keys(req.body).every((key)=>data.includes(key));
      return validateData
 }

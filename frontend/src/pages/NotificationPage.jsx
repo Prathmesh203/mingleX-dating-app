@@ -1,186 +1,183 @@
-"use client";
-
-import { useState } from 'react';
-import { Heart, MessageCircle, Star, Gift, Clock } from 'lucide-react';
-
+import { useCallback, useState } from 'react';
+import { Heart, X, Check } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { Card, CardContent } from '../components/Card';
 import { Badge } from '../components/Badge';
-
-
-const mockNotifications = [
-  {
-    id: 1,
-    type: 'match',
-    userName: 'Emma',
-    userImage: 'https://images.unsplash.com/photo-1688897345095-03fbea551ef9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMHdvbWFuJTIwcG9ydHJhaXQlMjBkYXRpbmd8ZW58MXx8fHwxNzU3NTQ0OTMzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    message: 'You have a new match! Start chatting now.',
-    timestamp: new Date('2024-01-15T19:30:00'),
-    isRead: false
-  },
-  {
-    id: 2,
-    type: 'like',
-    userName: 'Sofia',
-    userImage: 'https://images.unsplash.com/photo-1694299352873-0c29d862e87a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx3b21hbiUyMHNtaWxpbmclMjBwb3J0cmFpdHxlbnwxfHx8fDE3NTc2MTc3NTl8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    message: 'liked your profile',
-    timestamp: new Date('2024-01-15T18:45:00'),
-    isRead: false
-  },
-  {
-    id: 3,
-    type: 'message',
-    userName: 'James',
-    userImage: 'https://images.unsplash.com/photo-1543132220-e7fef0b974e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHx5b3VuZyUyMG1hbiUyMHBvcnRyYWl0JTIwY2FzdWFsfGVufDF8fHx8MTc1NzU3MjY0OXww&ixlib=rb-4.1.0&q=80&w=1080',
-    message: 'sent you a message',
-    timestamp: new Date('2024-01-15T17:20:00'),
-    isRead: true
-  },
-  {
-    id: 4,
-    type: 'super_like',
-    userName: 'Alex',
-    userImage: 'https://images.unsplash.com/photo-1622429081783-afff14ae39c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHxtYW4lMjBwb3J0cmFpdCUyMGxpZmVzdHlsZXxlbnwxfHx8fDE3NTc2NDI2MjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    message: 'super liked your profile!',
-    timestamp: new Date('2024-01-15T16:10:00'),
-    isRead: true
-  },
-  {
-    id: 5,
-    type: 'like',
-    userName: 'Maya',
-    userImage: 'https://images.unsplash.com/photo-1688897345095-03fbea551ef9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMHdvbWFuJTIwcG9ydHJhaXQlMjBkYXRpbmd8ZW58MXx8fHwxNzU3NTQ0OTMzfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    message: 'liked your profile',
-    timestamp: new Date('2024-01-15T14:30:00'),
-    isRead: true
-  }
-];
+import { useAuth } from '../context/authContext';
+import { respondToConnectionRequest } from '../services/connectionService';
+import { getUserRequests } from '../services/userServices';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function NotificationsPage() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  const [feedback, setFeedback] = useState({}); // State to track feedback messages per notification
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'like':
-        return <Heart className="h-5 w-5 text-red-500 fill-red-500" />;
-      case 'match':
-        return <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />;
-      case 'message':
-        return <MessageCircle className="h-5 w-5 text-blue-500" />;
-      case 'super_like':
-        return <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />;
-      case 'gift':
-        return <Gift className="h-5 w-5 text-purple-500" />;
-      default:
-        return <Heart className="h-5 w-5 text-gray-500" />;
-    }
-  };
+  const {
+    data,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['userRequests', token],
+    queryFn: () => getUserRequests(token),
+    enabled: !!token,
+    staleTime: 30000,
+    gcTime: 300000,
+  });
+  const notifications = data?.data?.data?.data || [];
 
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'match':
-        return 'bg-pink-50 border-pink-200';
-      case 'super_like':
-        return 'bg-yellow-50 border-yellow-200';
-      default:
-        return 'bg-white border-gray-200';
-    }
-  };
-
-  const formatTime = (date) => {
+   const formatTime = useCallback((date) => {
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const notificationDate = new Date(date);
+    const diffInMinutes = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60));
 
-    if (diffInMinutes < 1) {
-      return 'Just now';
-    } else if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)}d ago`;
-    }
-  };
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  }, []);
 
-  const markAsRead = (id) => {
-    setNotifications(notifications.map(notif =>
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
-  };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
-  };
+  const respondMutation = useMutation({
+    mutationFn: ({ status, connectionId }) => respondToConnectionRequest(token, status, connectionId),
+    onSuccess: (data, variables) => {
+      setFeedback((prev) => ({
+        ...prev,
+        [variables.connectionId]: { type: 'success', message: `Request ${variables.status} successfully` }
+      }));
+      queryClient.invalidateQueries(['userRequests', token]);
+      // Clear feedback after 3 seconds
+      setTimeout(() => {
+        setFeedback((prev) => ({ ...prev, [variables.connectionId]: null }));
+      }, 3000);
+    },
+    onError: (error, variables) => {
+      setFeedback((prev) => ({
+        ...prev,
+        [variables.connectionId]: { type: 'error', message: error.response?.data?.message || 'Failed to process request' }
+      }));
+      // Clear feedback after 3 seconds
+      setTimeout(() => {
+        setFeedback((prev) => ({ ...prev, [variables.connectionId]: null }));
+      }, 3000);
+    },
+  });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const handleAccept = useCallback((notification) => {
+    respondMutation.mutate({ status: 'accepted', connectionId: notification._id });
+  }, [respondMutation]);
+
+  const handleReject = useCallback((notification) => {
+    respondMutation.mutate({ status: 'rejected', connectionId: notification._id });
+  }, [respondMutation]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="flex justify-center items-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-gray-500" />
+  
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="text-center py-12">
+          <div className="bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <X className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700">Failed to load notifications</h3>
+          <p className="text-gray-500 mt-1">Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalNotifications = notifications?.length || 0;
 
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
-          {unreadCount > 0 && (
-            <Badge variant="destructive" className="bg-pink-500">
-              {unreadCount} new
+          {totalNotifications > 0 && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              {totalNotifications} total
             </Badge>
           )}
         </div>
-        {unreadCount > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={markAllAsRead}
-          >
-            Mark all as read
-          </Button>
-        )}
       </div>
 
       <div className="space-y-3">
-        {notifications.map((notification) => (
+        {notifications?.map((notification) => (
           <Card
-            key={notification.id}
-            className={`cursor-pointer transition-colors ${!notification.isRead ? 'bg-blue-50 border-blue-200' : ''
-              } ${getNotificationColor(notification.type)}`}
-            onClick={() => markAsRead(notification.id)}
+            key={notification._id}
+            className="transition-all duration-200 hover:shadow-md border-gray-200"
           >
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={notification.userImage} />
-                    <AvatarFallback>{notification.userName[0]}</AvatarFallback>
+                    <AvatarImage
+                      src={notification.fromUserId?.profile}
+                      alt={`${notification.fromUserId?.firstname} ${notification.fromUserId?.lastname}'s avatar`}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">
+                      {notification.fromUserId?.firstname?.charAt(0)?.toUpperCase() || '?'}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1">
-                    {getNotificationIcon(notification.type)}
+                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
+                    <Heart className="h-4 w-4 text-pink-500" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-semibold">{notification.userName}</span>
-                      <span className="text-gray-700 ml-1">{notification.message}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                      <span className="text-sm text-gray-500">
-                        {formatTime(notification.timestamp)}
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="font-semibold text-gray-900">
+                        {notification.fromUserId?.firstname} {notification.fromUserId?.lastname}
                       </span>
-                      {!notification.isRead && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      )}
+                      <span className="text-gray-700 ml-1">is {notification.status}</span>
                     </div>
+                    <span className="text-sm text-gray-500 flex-shrink-0 ml-2">
+                      {formatTime(notification.createdAt)} 
+                    </span>
                   </div>
 
-                  {notification.type === 'match' && (
+                  {feedback[notification._id] && (
+                    <div className={`text-sm mt-2 ${feedback[notification._id].type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+                      {feedback[notification._id].message}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 mt-3">
                     <Button
                       size="sm"
-                      className="mt-2 bg-pink-500 hover:bg-pink-600"
+                      variant="outline"
+                      onClick={() => handleReject(notification)}
+                      className="flex items-center gap-1 text-gray-600 hover:text-red-600 hover:border-red-300"
+                      disabled={respondMutation.isLoading}
                     >
-                      Start Chatting
+                      <X className="h-4 w-4" />
+                      Reject
                     </Button>
-                  )}
+                    <Button
+                      size="sm"
+                      onClick={() => handleAccept(notification)}
+                      className="flex items-center gap-1 bg-pink-500 hover:bg-pink-600 text-white"
+                      disabled={respondMutation.isLoading}
+                    >
+                      <Check className="h-4 w-4" />
+                      Accept
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -188,13 +185,13 @@ export function NotificationsPage() {
         ))}
       </div>
 
-      {notifications.length === 0 && (
+      {/* Empty state */}
+      {totalNotifications === 0 && (
         <div className="text-center py-12">
           <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Clock className="h-8 w-8 text-gray-400" />
+            <X className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-700">No notifications yet</h3>
-          <p className="text-gray-500 mt-1">When you get likes, matches, or messages, they'll appear here.</p>
+          <h3 className="text-lg font-semibold text-gray-700">No new notifications</h3>
         </div>
       )}
     </div>

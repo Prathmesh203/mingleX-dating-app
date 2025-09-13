@@ -36,20 +36,25 @@ const UserSchema = new mongoose.Schema(
       min: 17,
       max: 50,
     },
+    location: {
+      type: String,
+      trim: true,
+      default: "Not specified",
+    },
+    occupation: {
+      type: String,
+      trim: true,
+      default: "Not specified",
+    },
     bio: {
       type: String,
-      default: "enter your Bio",
+      default: "No Bio",
       MaxLength: 300,
     },
     profile: {
       type: String,
       default:
         "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-      validate(value) {
-        if (!validator.isURL(value)) {
-          throw new Error("Please Enter a Valid URL");
-        }
-      },
     },
     gender: {
       type: String,
